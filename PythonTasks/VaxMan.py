@@ -20,12 +20,23 @@ path = Turtle(visible=False)
 writer = Turtle(visible=False)
 aim = vector(5, 0)
 pacman = vector(-40, -80)
+
+class ghost:
+    def __init__(self, point, course):
+        self.point = vector(point.x, point.y)
+        self.course = vector(course.x, course.y)
+        self.isVaccinated = False
+    
+    def vaccinate(self):
+        self.isVaccinated = True
+
 ghosts = [
     [vector(-180, 160), vector(5, 0)],
     [vector(-180, -160), vector(0, 5)],
     [vector(100, 160), vector(0, -5)],
     [vector(100, -160), vector(-5, 0)],
 ]
+
 # fmt: off
 tiles = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
