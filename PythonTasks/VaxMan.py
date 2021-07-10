@@ -30,11 +30,11 @@ class ghost:
     def vaccinate(self):
         self.isVaccinated = True
 
-ghosts = [
-    [vector(-180, 160), vector(5, 0)],
-    [vector(-180, -160), vector(0, 5)],
-    [vector(100, 160), vector(0, -5)],
-    [vector(100, -160), vector(-5, 0)],
+ghostList = [
+    ghost(vector(-180, 160), vector(5, 0)),
+    ghost(vector(-180, -160), vector(0, 5)),
+    ghost(vector(100, 160), vector(0, -5)),
+    ghost(vector(100, -160), vector(-5, 0)),
 ]
 
 # fmt: off
@@ -142,9 +142,9 @@ def move():
     goto(pacman.x + 10, pacman.y + 10)
     dot(20, 'yellow')
 
-    for point, course in ghosts:
-        if valid(point + course):
-            point.move(course)
+    for ghost in ghostList:
+        if valid(ghost.point + ghost.course):
+            ghost.point.move(ghost.course)
         else:
             options = [
                 vector(5, 0),
@@ -153,17 +153,17 @@ def move():
                 vector(0, -5),
             ]
             plan = choice(options)
-            course.x = plan.x
-            course.y = plan.y
+            ghost.course.x = plan.x
+            ghost.course.y = plan.y
 
         up()
-        goto(point.x + 10, point.y + 10)
+        goto(ghost.point.x + 10, ghost.point.y + 10)
         dot(20, 'red')
 
     update()
 
-    for point, course in ghosts:
-        if abs(pacman - point) < 20:
+    for ghost in ghostList:
+        if abs(pacman - ghost.point) < 20:
             return
 
     ontimer(move, 100)
