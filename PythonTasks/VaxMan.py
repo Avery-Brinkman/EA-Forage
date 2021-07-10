@@ -158,13 +158,13 @@ def move():
 
         up()
         goto(ghost.point.x + 10, ghost.point.y + 10)
-        dot(20, 'red')
+        dot(20, 'green') if ghost.isVaccinated else dot(20, 'red')
 
     update()
 
     for ghost in ghostList:
         if abs(pacman - ghost.point) < 20:
-            return
+            ghost.vaccinate()
 
     ontimer(move, 100)
 
