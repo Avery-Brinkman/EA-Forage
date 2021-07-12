@@ -165,7 +165,7 @@ class Player(pygame.sprite.Sprite):
 
 # Ghost class
 class Ghost(pygame.sprite.Sprite):
-    def __init__(self, x, y, color = YELLOW):
+    def __init__(self, x, y, color = RED):
         pygame.sprite.Sprite.__init__(self)
         
         self.color = color
@@ -195,13 +195,17 @@ class Ghost(pygame.sprite.Sprite):
         self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)
 
 # Adding initial ghosts
-ghosts.add(Ghost(30, 30, RED))
-ghosts.add(Ghost(310, 30, RED))
-ghosts.add(Ghost(30, 350, RED))
-ghosts.add(Ghost(310, 350, RED))
+ghosts.add(Ghost(30, 30))
+ghosts.add(Ghost(310, 30))
+ghosts.add(Ghost(30, 350))
+ghosts.add(Ghost(310, 350))
 
 player = Player(DISP_W / 2, DISP_H / 2)
 createMaze()
+
+# Multiplication timer
+MultiplicationEvent = USEREVENT + 1
+pygame.time.set_timer(MultiplicationEvent, 10000)
 
 playing = True
 while playing:
@@ -214,6 +218,12 @@ while playing:
             print(pygame.key.name(event.key))
             if not player.collision(player.getDir(event.key)):
                 player.input(event.key)
+        elif event.type == MultiplicationEvent:
+            newGhosts = []
+            for g in ghosts:
+                newGhosts.append(Ghost(int(g.pos[0]), int(g.pos[1])))
+            for g in newGhosts:
+                ghosts.add(g)
 
     if player.collision(player.dir):
         player.dir = STOPPED
@@ -236,8 +246,6 @@ while playing:
     for g in ghosts:
         if g.collision(g.dir):
             g.changeDir()
-        
-        print(f'{g = } | {g.dir = }')
         g.move()
     player.move()
     pygame.display.update()
