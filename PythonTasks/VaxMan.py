@@ -145,8 +145,27 @@ class Player(pygame.sprite.Sprite):
             return self.dir        
 
     def input(self, key):
+        # Only checks valid move if turning
         if ((self.dir != self.getDir(key)).all() and (self.dir != -1 * self.getDir(key)).all()): 
+            #Snap to grid
             self.pos = roundNear(self.pos)
+            # Prevents moving along bricks
+            if (int(self.pos[0]) // 10) % 2 == 0:
+                # Bad X dir
+                # Check moving right
+                if (self.dir == RIGHT * SPEED).all():
+                    self.pos += array([10, 0])
+                # Check moving left
+                elif (self.dir == LEFT * SPEED).all():
+                    self.pos += array([-10, 0])
+            if (int(self.pos[1]) // 10) % 2 == 0:
+                # Bad Y dir
+                # Check moving up
+                if (self.dir == UP * SPEED).all():
+                    self.pos += array([0, -10])
+                # Check moving down
+                elif (self.dir == DOWN * SPEED).all():
+                    self.pos += array([0, 10])
         self.dir = self.getDir(key)
         
     def collision(self, dir):
