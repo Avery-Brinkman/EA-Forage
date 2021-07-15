@@ -282,6 +282,7 @@ while playing:
     for i in pygame.sprite.spritecollide(player, ghosts, True):
         Score += 50
 
+    # Drawing Screen
     screen.fill(BACKGROUND_COLOR)
     for b in bricks:
         b.draw()
@@ -293,7 +294,8 @@ while playing:
         g.move()
     player.move()
 
-    screen.blit(scoreText.render(str(Score), True, WHITE), (0, 0))
+    # Drawing Text and Updating screen
+    screen.blit(scoreText.render(str(Score) + '     Ghosts: ' + str(len(ghosts)), True, WHITE), (0, 0))
     pygame.display.update()
 
     clock.tick(60)
