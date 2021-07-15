@@ -299,7 +299,7 @@ while playing:
     player.move()
 
     # Drawing Text and Updating screen
-    screen.blit(scoreText.render(str(Score) + '     Ghosts: ' + str(len(ghosts)), True, WHITE), (0, 0))
+    screen.blit(scoreText.render(str(Score) + '     Ghosts: ' + str(len(ghosts)) + '/' + str(GameOver), True, WHITE), (0, 0))
     pygame.display.update()
 
     clock.tick(60)
