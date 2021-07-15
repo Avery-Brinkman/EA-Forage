@@ -8,7 +8,8 @@ from numpy import array
 
 pygame.init()
 pygame.font.init()
-pygameText = pygame.font.SysFont('Comic Sans MS', 12)
+scoreText = pygame.font.SysFont('Comic Sans MS', 12)
+winScreen = pygame.font.SysFont('Comic Sans MS', 30)
 
 # Score tracking
 Score = 0
@@ -66,16 +67,41 @@ ghosts = pygame.sprite.Group()
 
 # Maze drawing
 def createMaze():
-    mY = 0
+    currY = 0
+    foundStart = False
     for row in tiles:
-        mX = 0
-        for square in row:
+        # Init for current row
+        currX = 0
+        foundStart = False
+        bWidth = 0 
+        rowLen = len(row) - 1
+
+        for index, square in enumerate(row):
             if square == 0:
-                Brick(mX, mY, GRID_SIZE, GRID_SIZE)
-            elif square == 1:
-                Dot(mX + GRID_SIZE / 2, mY + GRID_SIZE / 2)
-            mX += GRID_SIZE
-        mY += GRID_SIZE    
+                # Starts brick
+                if not foundStart:
+                    foundStart = True
+                    bStartX = currX
+                    bStartY = currY
+                
+                # Brick longer
+                bWidth += GRID_SIZE
+                   
+                # Checks to end last element
+                if index == rowLen:
+                    Brick(bStartX, bStartY, bWidth, GRID_SIZE)
+                    foundStart = False
+
+            else:
+                # Ends brick
+                if foundStart:
+                    Brick(bStartX, bStartY, bWidth, GRID_SIZE)
+                    foundStart = False
+                    bWidth = 0
+                Dot(currX + GRID_SIZE / 2, currY + GRID_SIZE / 2)
+            currX += GRID_SIZE
+        currY += GRID_SIZE
+
 
 # Round to nearest multiple (https://stackoverflow.com/a/2272174)
 def roundNear(pos, base = 10):
@@ -251,7 +277,6 @@ while playing:
     # Dot collection
     for i in pygame.sprite.spritecollide(player, dots, True):
         Score += 10
-        print(Score)
 
     # Vaccination handler
     for i in pygame.sprite.spritecollide(player, ghosts, True):
@@ -268,7 +293,7 @@ while playing:
         g.move()
     player.move()
 
-    screen.blit(pygameText.render(str(Score), True, WHITE), (0, 0))
+    screen.blit(scoreText.render(str(Score), True, WHITE), (0, 0))
     pygame.display.update()
 
     clock.tick(60)
