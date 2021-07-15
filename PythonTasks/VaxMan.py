@@ -135,7 +135,7 @@ class Brick(pygame.sprite.Sprite):
         self.y = y
         self.w = w
         self.h = h
-        self.rect = (self.x, self.y, self.w, self.h)
+        self.rect = pygame.Rect(self.x, self.y, self.w, self.h)
 
     def draw(self):
         pygame.draw.rect(self.surf, self.color, self.rect)
@@ -220,23 +220,15 @@ class Ghost(pygame.sprite.Sprite):
         self.dir = choice(MOVESET)
         self.r = GRID_SIZE / 2
         self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)
-   
-    def changeDir(self):
-        newDir = choice(MOVESET)
-        while (self.dir == newDir).all() or (self.dir == -1 * newDir).all() or self.collision(newDir):
-            newDir = choice(MOVESET)
-        self.dir = newDir
         
-    def collision(self, dir):
-        origCenter = self.pos
-        tstCenter = origCenter + dir
-        tstPnt = tstCenter + (dir * self.r)
-        
+    def collision(self):
+        nextPos = self.pos + self.dir + (self.dir / SPEED) * self.r
+        intPos = (int(nextPos[0]), int(nextPos[1]))
+        options = [possibleMove * SPEED for possibleMove in MOVESET if (self.dir != possibleMove * SPEED).all()]
         for b in bricks:
-            if (tstPnt[0] in range(b.x, b.x + b.w)) and (tstPnt[1] in range(b.y, b.y + b.h)):
-                return True
-        return False
-
+            if b.rect.collidepoint(intPos):
+                self.dir = choice(options)
+            
     def move(self):       
         self.pos += self.dir * SPEED
         self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)
@@ -289,8 +281,7 @@ while playing:
     for d in dots:
         d.draw()
     for g in ghosts:
-        if g.collision(g.dir):
-            g.changeDir()
+        g.collision()
         g.move()
     player.move()
 
