@@ -7,6 +7,8 @@ from pygame.constants import *
 from numpy import array
 
 pygame.init()
+pygame.font.init()
+pygameText = pygame.font.SysFont('Comic Sans MS', 12)
 
 # Score tracking
 Score = 0
@@ -234,7 +236,6 @@ while playing:
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 playing = False
-            print(pygame.key.name(event.key))
             if not player.collision(player.getDir(event.key)):
                 player.input(event.key)
         elif event.type == MultiplicationEvent:
@@ -255,7 +256,6 @@ while playing:
     # Vaccination handler
     for i in pygame.sprite.spritecollide(player, ghosts, True):
         Score += 50
-        print(Score)
 
     screen.fill(BACKGROUND_COLOR)
     for b in bricks:
@@ -267,6 +267,8 @@ while playing:
             g.changeDir()
         g.move()
     player.move()
+
+    screen.blit(pygameText.render(str(Score), True, WHITE), (0, 0))
     pygame.display.update()
 
     clock.tick(60)
