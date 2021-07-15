@@ -196,13 +196,14 @@ class Player(pygame.sprite.Sprite):
                     self.pos += array([0, 10])
         self.dir = self.getDir(key)
         
-    def collision(self, dir):
-        origCenter = self.pos
-        tstCenter = origCenter + dir
-        tstPnt = tstCenter + (dir * self.r)
-        
+    def collision(self):
+        # Testing position (center + movement + radius)
+        nextPos = self.pos + self.dir + (self.dir / SPEED) * self.r
+        # Testing position as a int tuple 
+        intPos = (int(nextPos[0]), int(nextPos[1]))
+        # Checks for collsion
         for b in bricks:
-            if (tstPnt[0] in range(b.x, b.x + b.w)) and (tstPnt[1] in range(b.y, b.y + b.h)):
+            if b.rect.collidepoint(intPos):
                 return True
         return False
 
@@ -222,9 +223,13 @@ class Ghost(pygame.sprite.Sprite):
         self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)
         
     def collision(self):
+        # Testing position (center + movement + radius)
         nextPos = self.pos + self.dir + (self.dir / SPEED) * self.r
+        # Testing position as a int tuple 
         intPos = (int(nextPos[0]), int(nextPos[1]))
+        # Creates a list of all possible directions except current direction (which caused the initial collision)
         options = [possibleMove * SPEED for possibleMove in MOVESET if (self.dir != possibleMove * SPEED).all()]
+        # Checks for collsion
         for b in bricks:
             if b.rect.collidepoint(intPos):
                 self.dir = choice(options)
@@ -242,28 +247,35 @@ ghosts.add(Ghost(310, 350))
 player = Player(DISP_W / 2, DISP_H / 2)
 createMaze()
 
-# Multiplication timer
+# Multiplication event on timer
 MultiplicationEvent = USEREVENT + 1
 pygame.time.set_timer(MultiplicationEvent, 10000)
 
 playing = True
 while playing:
     for event in pygame.event.get():
+        # Quit
         if event.type == pygame.QUIT:
             playing = False
+        # KB input
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 playing = False
-            if not player.collision(player.getDir(event.key)):
+            # Movement
+            if not player.collision():
                 player.input(event.key)
+        # Multiplication
         elif event.type == MultiplicationEvent:
+            # List to store new ghosts
             newGhosts = []
             for g in ghosts:
                 newGhosts.append(Ghost(int(g.pos[0]), int(g.pos[1])))
+            # Adding new ghosts
             for g in newGhosts:
                 ghosts.add(g)
 
-    if player.collision(player.dir):
+    # Stops player when they run into a wall
+    if player.collision():
         player.dir = STOPPED
 
     # Dot collection
