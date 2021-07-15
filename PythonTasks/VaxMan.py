@@ -243,6 +243,7 @@ ghosts.add(Ghost(30, 30))
 ghosts.add(Ghost(310, 30))
 ghosts.add(Ghost(30, 350))
 ghosts.add(Ghost(310, 350))
+GameOver = len(ghosts) * 32
 
 player = Player(DISP_W / 2, DISP_H / 2)
 createMaze()
