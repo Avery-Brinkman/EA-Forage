@@ -2,9 +2,12 @@
 # https://github.com/grantjenks/free-python-games/blob/master/freegames/pacman.py
 
 import pygame
-from random import choice
+from random import seed, choice, randint
 from pygame.constants import *
 from numpy import array
+
+# Initializes random
+seed()
 
 pygame.init()
 pygame.font.init()
@@ -54,7 +57,6 @@ BACKGROUND_COLOR = BLUE
 
 # Creating Screen
 screen = pygame.display.set_mode((DISP_W, DISP_H))
-pygame.display.update()
 pygame.display.set_caption('VaxMan')
 
 # Pygame clock
@@ -158,56 +160,36 @@ class Player(pygame.sprite.Sprite):
         self.pos = array([x, y])
         self.dir = STOPPED
         self.r = GRID_SIZE / 2
-        self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)
-
-    def getDir(self, key):
-        if key == K_UP:
-            return UP * SPEED
-        elif key == K_DOWN:
-            return DOWN * SPEED
-        elif key == K_LEFT:
-            return LEFT * SPEED
-        elif key == K_RIGHT:
-            return RIGHT * SPEED
-        else:
-            return self.dir        
+        self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)   
 
     def input(self, key):
-        # Only checks valid move if turning
-        if ((self.dir != self.getDir(key)).all() and (self.dir != -1 * self.getDir(key)).all()): 
-            #Snap to grid
-            self.pos = roundNear(self.pos)
-            # Prevents moving along bricks
-            if (int(self.pos[0]) // 10) % 2 == 0:
-                # Bad X dir
-                # Check moving right
-                if (self.dir == RIGHT * SPEED).all():
-                    self.pos += array([10, 0])
-                # Check moving left
-                elif (self.dir == LEFT * SPEED).all():
-                    self.pos += array([-10, 0])
-            if (int(self.pos[1]) // 10) % 2 == 0:
-                # Bad Y dir
-                # Check moving up
-                if (self.dir == UP * SPEED).all():
-                    self.pos += array([0, -10])
-                # Check moving down
-                elif (self.dir == DOWN * SPEED).all():
-                    self.pos += array([0, 10])
-        self.dir = self.getDir(key)
+        if key == K_UP:
+            self.dir = UP * SPEED
+        elif key == K_DOWN:
+            self.dir = DOWN * SPEED
+        elif key == K_LEFT:
+            self.dir = LEFT * SPEED
+        elif key == K_RIGHT:
+            self.dir = RIGHT * SPEED
+        else:
+            self.dir = self.dir
         
     def collision(self):
-        # Testing position (center + movement + radius)
-        nextPos = self.pos + self.dir + (self.dir / SPEED) * self.r
-        # Testing position as a int tuple 
-        intPos = (int(nextPos[0]), int(nextPos[1]))
+        # Testing position (movement + radius)
+        nextPos = array(self.dir + (self.dir / SPEED) * self.r)
+        leftSide = array([-nextPos[1], nextPos[0]])
+        rightSide = array(-leftSide).copy()
+                
         # Checks for collsion
         for b in bricks:
-            if b.rect.collidepoint(intPos):
-                return True
-        return False
-
-    def move(self):       
+            if b.rect.collidepoint(self.pos + nextPos):
+                self.dir = STOPPED
+            if b.rect.collidepoint(self.pos + rightSide) or b.rect.collidepoint(self.pos + rightSide - 1):
+                self.pos -= rightSide / self.r
+            if b.rect.collidepoint(self.pos + leftSide) or b.rect.collidepoint(self.pos + leftSide - 1):
+                self.pos -= leftSide / self.r
+            
+    def move(self):    
         self.pos += self.dir
         self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)
 
@@ -224,18 +206,21 @@ class Ghost(pygame.sprite.Sprite):
         
     def collision(self):
         # Testing position (center + movement + radius)
-        nextPos = self.pos + self.dir + (self.dir / SPEED) * self.r
-        # Testing position as a int tuple 
-        intPos = (int(nextPos[0]), int(nextPos[1]))
+        nextPos = array(self.dir + (self.dir / SPEED) * self.r).copy()
         # Creates a list of all possible directions except current direction (which caused the initial collision)
         options = [possibleMove * SPEED for possibleMove in MOVESET if (self.dir != possibleMove * SPEED).all()]
         # Checks for collsion
         for b in bricks:
-            if b.rect.collidepoint(intPos):
+            if b.rect.collidepoint(self.pos + nextPos):
                 self.dir = choice(options)
+                self.pos = roundNear(self.pos)
             
-    def move(self):       
-        self.pos += self.dir * SPEED
+    def move(self):      
+        if randint(1, 100) > 99:
+            options = [possibleMove * SPEED for possibleMove in MOVESET if (self.dir != -1 * possibleMove * SPEED).all()]
+            self.dir = choice(options)
+            self.pos = roundNear(self.pos)
+        self.pos += self.dir
         self.rect = pygame.draw.circle(screen, self.color, self.pos, self.r)
 
 # Adding initial ghosts
@@ -263,7 +248,7 @@ while playing:
             if event.key == K_ESCAPE:
                 playing = False
             # Movement
-            if not player.collision():
+            else:
                 player.input(event.key)
         # Multiplication
         elif event.type == MultiplicationEvent:
@@ -276,8 +261,7 @@ while playing:
                 ghosts.add(g)
 
     # Stops player when they run into a wall
-    if player.collision():
-        player.dir = STOPPED
+    player.collision()  
 
     # Dot collection
     for i in pygame.sprite.spritecollide(player, dots, True):
@@ -301,6 +285,14 @@ while playing:
     # Drawing Text and Updating screen
     screen.blit(scoreText.render(str(Score) + '     Ghosts: ' + str(len(ghosts)) + '/' + str(GameOver), True, WHITE), (0, 0))
     pygame.display.update()
+
+    # Endgame checking
+    if not dots:
+        print('Win')
+        playing = False
+    if len(ghosts) >= GameOver:
+        print('Game Over')
+        playing = False
 
     clock.tick(60)
 
