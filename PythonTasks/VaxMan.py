@@ -12,7 +12,7 @@ seed()
 pygame.init()
 pygame.font.init()
 scoreText = pygame.font.SysFont('Comic Sans MS', 12)
-winScreen = pygame.font.SysFont('Comic Sans MS', 30)
+endScreen = pygame.font.SysFont('Comic Sans MS', 30)
 
 # Score tracking
 Score = 0
@@ -237,16 +237,17 @@ createMaze()
 MultiplicationEvent = USEREVENT + 1
 pygame.time.set_timer(MultiplicationEvent, 10000)
 
-playing = True
-while playing:
+status = 'PLAYING'
+showEndScreen = False
+while status == 'PLAYING':
     for event in pygame.event.get():
         # Quit
         if event.type == pygame.QUIT:
-            playing = False
+            status = 'QUIT'
         # KB input
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
-                playing = False
+                status = 'QUIT'
             # Movement
             else:
                 player.input(event.key)
@@ -259,7 +260,6 @@ while playing:
             # Adding new ghosts
             for g in newGhosts:
                 ghosts.add(g)
-
     # Stops player when they run into a wall
     player.collision()  
 
@@ -273,28 +273,35 @@ while playing:
 
     # Drawing Screen
     screen.fill(BACKGROUND_COLOR)
-    for b in bricks:
-        b.draw()
-    for d in dots:
-        d.draw()
-    for g in ghosts:
-        g.collision()
-        g.move()
-    player.move()
+    if showEndScreen:
+        if win:
+            screen.blit(endScreen.render('WINNER!', True, WHITE), (0, DISP_W))
+        else:
+            screen.blit(endScreen.render('GAME OVER!', True, WHITE), (0, DISP_W))
+    else:
+        for b in bricks:
+            b.draw()
+        for d in dots:
+            d.draw()
+        for g in ghosts:
+            g.collision()
+            g.move()
+        player.move()
 
-    # Drawing Text and Updating screen
-    screen.blit(scoreText.render(str(Score) + '     Ghosts: ' + str(len(ghosts)) + '/' + str(GameOver), True, WHITE), (0, 0))
+        # Drawing Text 
+        screen.blit(scoreText.render(str(Score) + '     Ghosts: ' + str(len(ghosts)) + '/' + str(GameOver), True, WHITE), (0, 0))
+    # Update screen
     pygame.display.update()
+    
 
     # Endgame checking
     if not dots:
-        print('Win')
-        playing = False
+        showEndScreen = True
+        win = True
     if len(ghosts) >= GameOver:
-        print('Game Over')
-        playing = False
+        showEndScreen = True
+        win = False
 
     clock.tick(60)
-
 pygame.quit()
 quit()
